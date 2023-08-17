@@ -64,29 +64,9 @@ class ColorTemperatureLightControllerDevice extends LightControllerDevice
                 parameters: [Math.round(value * 360), saturation * 100],
             };
             const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.commandExecuting = 'light_hue';
-                    this.executionCmd = action.name;
-                    this.executionId = {id: result.execId, local: result.local};
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: onCapabilityLight_hue`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
+            this.commandExecuting = 'light_hue';
+            this.executionCmd = action.name;
+            this.executionId = { id: result.execId, local: result.local };
         }
         else
         {
@@ -130,29 +110,9 @@ class ColorTemperatureLightControllerDevice extends LightControllerDevice
                 parameters: [hue * 360, value * 100],
             };
             const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.commandExecuting = 'light_saturation';
-                    this.executionCmd = action.name;
-                    this.executionId = {id: result.execId, local: result.local};
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: onCapabilityDim`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
+            this.commandExecuting = 'light_saturation';
+            this.executionCmd = action.name;
+            this.executionId = { id: result.execId, local: result.local };
         }
         else
         {
@@ -171,7 +131,7 @@ class ColorTemperatureLightControllerDevice extends LightControllerDevice
             if (states)
             {
                 // Hue level
-                const hueState = states.find(state => (state && (state.name === 'core:ColorHueState')));
+                const hueState = states.find((state) => (state && (state.name === 'core:ColorHueState')));
                 if (hueState)
                 {
                     this.homey.app.logStates(`${this.getName()}: core:ColorHueState = ${hueState.value}`);
@@ -182,7 +142,7 @@ class ColorTemperatureLightControllerDevice extends LightControllerDevice
                 }
 
                 // Saturation level
-                const saturationState = states.find(state => (state && (state.name === 'core:ColorSaturationState')));
+                const saturationState = states.find((state) => (state && (state.name === 'core:ColorSaturationState')));
                 if (saturationState)
                 {
                     this.homey.app.logStates(`${this.getName()}: core:ColorSaturationState = ${saturationState.value}`);

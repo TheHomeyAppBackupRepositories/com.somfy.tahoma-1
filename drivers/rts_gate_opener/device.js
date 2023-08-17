@@ -83,38 +83,10 @@ class rtsGateOpenerDevice extends Device
             };
         }
 
-        try
-        {
-            const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.commandExecuting = action.name;
-                    this.executionCmd = action.name;
-                    this.executionId = {id: result.execId, local: result.local};
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: sendOpenClose`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
-        }
-        catch (err)
-        {
-            this.homey.app.logInformation(`${this.getName()}: sendOpenClose`, 'Failed to send command');
-            throw (err);
-        }
+        const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
+        this.commandExecuting = action.name;
+        this.executionCmd = action.name;
+        this.executionId = { id: result.execId, local: result.local };
     }
 
     // look for updates in the events array
@@ -129,7 +101,7 @@ class rtsGateOpenerDevice extends Device
         if (!local && this.homey.app.isLocalDevice(myURL))
         {
             // This device is handled locally so ignore cloud updates
-            return;
+            return myURL;
         }
 
         // Process events sequentially so they are in the correct order
@@ -144,7 +116,7 @@ class rtsGateOpenerDevice extends Device
                     {
                         if (!this.executionId || (this.executionId.id !== element.execId))
                         {
-                            this.executionId = {id: element.execId, local};
+                            this.executionId = { id: element.execId, local };
                             if (element.actions[x].commands)
                             {
                                 this.executionCmd = element.actions[x].commands[0].name;

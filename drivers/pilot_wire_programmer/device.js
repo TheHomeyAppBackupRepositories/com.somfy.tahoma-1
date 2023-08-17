@@ -52,28 +52,8 @@ class PilotWireProgrammerDevice extends SensorDevice
                 };
             }
             const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.executionCmd = action.name;
-                    this.executionId = { id: result.execId, local: result.local };
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: onCapabilityOnOff`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
+            this.executionCmd = action.name;
+            this.executionId = { id: result.execId, local: result.local };
         }
         else
         {
@@ -123,29 +103,11 @@ class PilotWireProgrammerDevice extends SensorDevice
                 };
             }
 
-            const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.executionCmd = action.name;
-                    this.executionId = { id: result.execId, local: result.local };
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: onCapabilityAlarmArmedState`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
+            // Send the command. Throws an error if it fails
+            let result = null;
+            result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
+            this.executionCmd = action.name;
+            this.executionId = { id: result.execId, local: result.local };
         }
         else
         {
@@ -177,7 +139,7 @@ class PilotWireProgrammerDevice extends SensorDevice
                 if (heatingMode)
                 {
                     this.homey.app.logStates(`${this.getName()}: ovp:HeatingTemperatureInterfaceActiveModeState = ${heatingMode.value}`);
-                    this.triggerCapabilityListener('heatingMode', heatingMode.value,
+                    this.triggerCapabilityListener('heating_mode', heatingMode.value,
                     {
                         fromCloudSync: true,
                     }).catch(this.error);
@@ -245,11 +207,11 @@ class PilotWireProgrammerDevice extends SensorDevice
                         else if (deviceState.name === 'ovp:HeatingTemperatureInterfaceActiveModeState')
                         {
                             this.homey.app.logStates(`${this.getName()}: ovp:HeatingTemperatureInterfaceActiveModeState = ${deviceState.value}`);
-                            const oldState = this.getState().heatingMode;
+                            const oldState = this.getState().heating_mode;
                             const newState = deviceState.value;
                             if (oldState !== newState)
                             {
-                                this.triggerCapabilityListener('heatingMode', newState,
+                                this.triggerCapabilityListener('heating_mode', newState,
                                 {
                                     fromCloudSync: true,
                                 }).catch(this.error);

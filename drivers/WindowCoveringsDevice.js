@@ -186,35 +186,13 @@ class WindowCoveringsDevice extends Device
                         parameters: [],
                     };
                     const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                    if (result)
-                    {
-                        if (result.errorCode)
-                        {
-                            this.setWarning(result.errorCode + result.error).catch(this.error);
-                            this.homey.app.logInformation(this.getName(),
-                            {
-                                message: result.error,
-                                stack: result.errorCode,
-                            });
-                            throw (new Error(result.error));
-                        }
-                        else
-                        {
-                            this.executionCmd = action.name;
-                            this.executionId = { id: result.execId, local: result.local };
-                        }
-                    }
-                    else
-                    {
-                        this.homey.app.logInformation(`${this.getName()}: onCapabilityWindowcoveringsState`, 'Failed to send command');
-                        throw (new Error('Failed to send command'));
-                    }
+                    this.executionCmd = action.name;
+                    this.executionId = { id: result.execId, local: result.local };
                 }
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
             finally
@@ -277,34 +255,12 @@ class WindowCoveringsDevice extends Device
                 }
 
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.setWarning(result.errorCode + result.error).catch(this.error);
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityWindowcoveringsSet`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -335,34 +291,12 @@ class WindowCoveringsDevice extends Device
                 };
 
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.setWarning(result.errorCode + result.error).catch(this.error);
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityWindowcoveringsTiltSet`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -398,34 +332,12 @@ class WindowCoveringsDevice extends Device
                     parameters: [3, 1],
                 };
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.setWarning(result.errorCode + result.error).catch(this.error);
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityWindowcoveringsTiltUp`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -450,33 +362,12 @@ class WindowCoveringsDevice extends Device
                     parameters: [3, 1],
                 };
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityWindowcoveringsTiltDown`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -499,33 +390,12 @@ class WindowCoveringsDevice extends Device
                     parameters: [],
                 };
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityMyPosition`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -548,33 +418,12 @@ class WindowCoveringsDevice extends Device
                     parameters: [],
                 };
                 const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-                if (result)
-                {
-                    if (result.errorCode)
-                    {
-                        this.homey.app.logInformation(this.getName(),
-                        {
-                            message: result.error,
-                            stack: result.errorCode,
-                        });
-                        throw (new Error(result.error));
-                    }
-                    else
-                    {
-                        this.executionCmd = action.name;
-                        this.executionId = { id: result.execId, local: result.local };
-                    }
-                }
-                else
-                {
-                    this.homey.app.logInformation(`${this.getName()}: onCapabilityPedestrian`, 'Failed to send command');
-                    throw (new Error('Failed to send command'));
-                }
+                this.executionCmd = action.name;
+                this.executionId = { id: result.execId, local: result.local };
             }
             catch (err)
             {
                 this.setWarning(err.message).catch(this.error);
-                this.homey.app.logInformation(this.getName(), err.message);
                 throw (err);
             }
         }
@@ -618,11 +467,18 @@ class WindowCoveringsDevice extends Device
                     {
                         this.homey.app.logStates(`${this.getName()}: io:PriorityLockOriginatorState = ${lockState.value}`);
                         this.setCapabilityValue('lock_state', lockState.value).catch(this.error);
+                        if (this.driver.triggerLockStateChange)
+                        {
+                            const tokens = {
+                                lock_state: lockState.value,
+                            };
+                            this.driver.triggerLockStateChange(this, tokens);
+                        }
 
                         if (this.checkLockSate)
                         {
                             clearTimeout(this.checkLockStateTimer);
-                            this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, 60 * 1000);
+                            this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, 60 * 30000);
                         }
                     }
                     else
@@ -631,9 +487,21 @@ class WindowCoveringsDevice extends Device
                         if (lockStateTimer)
                         {
                             this.homey.app.logStates(`${this.getName()}: core:PriorityLockTimerState = ${lockStateTimer.value}`);
-                            if (lockStateTimer.value === 0)
+                            if ((lockStateTimer.value === '0') || (lockStateTimer.value === 0))
                             {
                                 this.setCapabilityValue('lock_state', '').catch(this.error);
+                                if (this.driver.triggerLockStateChange)
+                                {
+                                    const tokens = {
+                                        lock_state: '',
+                                    };
+                                    this.driver.triggerLockStateChange(this, tokens);
+                                }
+                            }
+                            else if (this.checkLockSate)
+                            {
+                                clearTimeout(this.checkLockStateTimer);
+                                this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, (60 * parseInt(lockStateTimer.value, 10)));
                             }
                         }
                     }
@@ -769,11 +637,11 @@ class WindowCoveringsDevice extends Device
         try
         {
             const myURL = this.getDeviceUrl();
-            if (!local && this.homey.app.isLocalDevice(myURL))
-            {
-                // This device is handled locally so ignore cloud updates
-                return;
-            }
+            // if (!local && this.homey.app.isLocalDevice(myURL))
+            // {
+            //     // This device is handled locally so ignore cloud updates
+            //     return;
+            // }
 
             let lastPosition = null;
 
@@ -812,11 +680,41 @@ class WindowCoveringsDevice extends Device
                                 {
                                     this.homey.app.logStates(`${this.getName()}: io:PriorityLockOriginatorState = ${deviceState.value}`);
                                     this.setCapabilityValue('lock_state', deviceState.value).catch(this.error);
+                                    if (this.driver.triggerLockStateChange)
+                                    {
+                                        const tokens = {
+                                            lock_state: deviceState.value,
+                                        };
+                                        this.driver.triggerLockStateChange(this, tokens);
+                                    }
                                     if (this.checkLockSate)
                                     {
                                         // Setup timer to call a function to check if it can be cleared
                                         clearTimeout(this.checkLockStateTimer);
-                                        this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, (60 * 1000));
+                                        this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, (60 * 30000));
+                                    }
+                                }
+                            }
+                            else if (deviceState.name === 'core:PriorityLockTimerState')
+                            {
+                                if (this.hasCapability('lock_state') && (deviceState.value))
+                                {
+                                    this.homey.app.logStates(`${this.getName()}: core:PriorityLockTimerState = ${deviceState.value}`);
+                                    if ((deviceState.value === '0') || (deviceState.value === 0))
+                                    {
+                                        this.setCapabilityValue('lock_state', '').catch(this.error);
+                                        if (this.driver.triggerLockStateChange)
+                                        {
+                                            const tokens = {
+                                                lock_state: '',
+                                            };
+                                            this.driver.triggerLockStateChange(this, tokens);
+                                        }
+                                    }
+                                    else if (this.checkLockSate)
+                                    {
+                                        clearTimeout(this.checkLockStateTimer);
+                                        this.checkLockStateTimer = this.homey.setTimeout(this.checkLockSate, (60 * parseInt(deviceState.value, 10)));
                                     }
                                 }
                             }

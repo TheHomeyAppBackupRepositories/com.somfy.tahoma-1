@@ -81,28 +81,8 @@ class OneAlarmDevice extends SensorDevice
                 };
             }
             const result = await this.homey.app.executeDeviceAction(deviceData.label, deviceData.deviceURL, action, this.boostSync);
-            if (result)
-            {
-                if (result.errorCode)
-                {
-                    this.homey.app.logInformation(this.getName(),
-                    {
-                        message: result.error,
-                        stack: result.errorCode,
-                    });
-                    throw (new Error(result.error));
-                }
-                else
-                {
-                    this.executionCmd = action.name;
-                    this.executionId = {id: result.execId, local: result.local};
-                }
-            }
-            else
-            {
-                this.homey.app.logInformation(`${this.getName()}: onCapabilityAlarmArmedState`, 'Failed to send command');
-                throw (new Error('Failed to send command'));
-            }
+            this.executionCmd = action.name;
+            this.executionId = { id: result.execId, local: result.local };
         }
         else
         {
@@ -120,14 +100,14 @@ class OneAlarmDevice extends SensorDevice
             let states = await super.getStates();
             if (states)
             {
-                const intrusionState = states.find(state => (state && (state.name === 'core:IntrusionState')));
+                const intrusionState = states.find((state) => (state && (state.name === 'core:IntrusionState')));
                 if (intrusionState)
                 {
                     this.homey.app.logStates(`${this.getName()}: core:IntrusionState = ${intrusionState.value}`);
                     this.triggerCapabilityListener('alarm_generic', intrusionState.value === 'detected').catch(this.error);
                 }
 
-                const alarmStatusState = states.find(state => (state && (state.name === 'myfox:AlarmStatusState')));
+                const alarmStatusState = states.find((state) => (state && (state.name === 'myfox:AlarmStatusState')));
                 if (alarmStatusState)
                 {
                     this.homey.app.logStates(`${this.getName()}: myfox:AlarmStatusState = ${alarmStatusState.value}`);

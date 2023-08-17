@@ -327,14 +327,20 @@ class myApp extends Homey.App
 
         try
         {
-            await this.doLocalLogin(username, password, region);
+            if (await this.doLocalLogin(username, password, region))
+            {
+                // Start sync in 5 seconds
+                this.syncTimerId = this.homey.setTimeout(() => this.startSync(), 5000);
+                return;
+            }
         }
         catch (err)
         {
             this.logInformation('Local login failed', err.message);
         }
 
-        this.syncTimerId = this.homey.setTimeout(() => this.initSync(), 5000);
+        // Retry sync in 60 seconds
+        this.syncTimerId = this.homey.setTimeout(() => this.startSync(), 60000);
     }
 
     async doLocalLogin(username, password, region)
@@ -378,8 +384,9 @@ class myApp extends Homey.App
             {
                 if (this.infoLogEnabled)
                 {
+                    this.logInformation('Local login: Getting local API version');
                     const apiVer = await this.tahomaLocal.getLocalAPIVersion();
-                    this.logInformation('Local login', apiVer);
+                    this.logInformation('Local login Successful', apiVer);
                 }
                 await this.tahomaLocal.getDeviceData();
             }
@@ -388,11 +395,19 @@ class myApp extends Homey.App
                 if (error.message)
                 {
                     this.logInformation('Local login', `Error: ${error.message}`);
+                    if (error.message.indexOf('ECONNREFUSED ') !== -1)
+                    {
+                        this.homey.settings.unset('localBearer');
+                        this.localBearer = null;
+                        this.tahomaLocal.authenticated = false;
+                    }
                 }
                 else
                 {
                     this.logInformation('Local login', error);
                 }
+
+                return false;
             }
 
             return true;
@@ -831,11 +846,11 @@ class myApp extends Homey.App
     // Throws an exception if the login fails
     async newLogin(args)
     {
-        await this.newLogin_2(args.username, args.password, args.region);
+        await this.newLogin_2(args.username, args.password, args.region, true);
     }
 
     // Throws an exception if the login fails
-    async newLogin_2(username, password, region)
+    async newLogin_2(username, password, region, forceLogin = false)
     {
         // Stop the timer so periodic updates don't happen while changing login
         await this.stopSync();
@@ -845,7 +860,7 @@ class myApp extends Homey.App
             this.loginTimerId = null;
         }
 
-        if (this.localBridgeInfo && this.localBridgeInfo.pin)
+        if (this.localBridgeInfo && this.localBridgeInfo.pin && (!this.tahomaLocal.authenticated || forceLogin))
         {
             try
             {
@@ -865,52 +880,55 @@ class myApp extends Homey.App
             }
         }
 
-        // make sure we logout from old method first
-        await this.tahomaCloud.logout();
-
-        // Allow a short delay before logging back in
-        await new Promise((resolve) => this.homey.setTimeout(resolve, 1000));
-
-        let loginMethod = true; // Start with new method
-
-        // Login with supplied credentials. An error is thrown if the login fails
-        try
+        if (this.tahomaCloud && (!this.tahomaCloud.authenticated || forceLogin))
         {
-            await this.tahomaCloud.login(username, password, region, loginMethod, this.homeyIP);
-        }
-        catch (error)
-        {
-            if (error.message)
+            // make sure we logout from old method first
+            await this.tahomaCloud.logout();
+
+            // Allow a short delay before logging back in
+            await new Promise((resolve) => this.homey.setTimeout(resolve, 1000));
+
+            let loginMethod = true; // Start with new method
+
+            // Login with supplied credentials. An error is thrown if the login fails
+            try
             {
-                this.logInformation('Login OAuth', `Error: ${error.message}`);
+                await this.tahomaCloud.login(username, password, region, loginMethod, this.homeyIP);
             }
-            else
+            catch (error)
             {
-                this.logInformation('Login OAuth', error);
+                if (error.message)
+                {
+                    this.logInformation('Login OAuth', `Error: ${error.message}`);
+                }
+                else
+                {
+                    this.logInformation('Login OAuth', error);
+                }
+
+                // Try other log in method
+                loginMethod = !loginMethod;
             }
 
-            // Try other log in method
-            loginMethod = !loginMethod;
+            if (!this.tahomaCloud.authenticated)
+            {
+                // Try once more with the alternative method but let an error break us out of here
+                await this.tahomaCloud.login(username, password, region, loginMethod, this.homeyIP);
+            }
+
+            if (this.tahomaCloud.authenticated)
+            {
+                // All good so save the credentials
+                this.homey.settings.set('username', username);
+                this.homey.settings.set('password', password);
+                this.homey.settings.set('region', region);
+
+                const setupInfo = await this.tahomaCloud.getSetupOID();
+                this.somfySetupOID = setupInfo.result;
+            }
         }
 
-        if (!this.tahomaCloud.authenticated)
-        {
-            // Try once more with the alternative method but let an error break us out of here
-            await this.tahomaCloud.login(username, password, region, loginMethod, this.homeyIP);
-        }
-
-        if (this.tahomaCloud.authenticated)
-        {
-            // All good so save the credentials
-            this.homey.settings.set('username', username);
-            this.homey.settings.set('password', password);
-            this.homey.settings.set('region', region);
-
-            const setupInfo = await this.tahomaCloud.getSetupOID();
-            this.somfySetupOID = setupInfo.result;
-
-            this.startSync();
-        }
+        this.startSync();
         return this.tahomaCloud.authenticated;
     }
 
@@ -966,7 +984,7 @@ class myApp extends Homey.App
             // Filter cloud devices to remove local devices
             const unique = cloudDevices.filter((cloud) =>
             {
-                const isDuplicate = (localDevices.findIndex((local) => local.deviceURL === cloud.deviceURL) >= 0);
+                const isDuplicate = (localDevices.findIndex((local) => (local.deviceURL === cloud.deviceURL) && (local.controllableName === cloud.controllableName)) >= 0);
 
                 if (!isDuplicate)
                 {
@@ -1043,7 +1061,27 @@ class myApp extends Homey.App
         let data = '';
         if (error)
         {
-            data = this.varToString(error);
+            if (error.stack)
+            {
+                data = {
+                    message: error.message,
+                    stack: error.stack,
+                };
+            }
+            else if (error.message)
+            {
+                data = error.message;
+            }
+            else if (error.data)
+            {
+                data = error.data;
+            }
+            else
+            {
+                data = error;
+            }
+
+            data = this.varToString(data);
         }
 
         this.homey.error(`${source}, ${data}`);
@@ -1052,25 +1090,6 @@ class myApp extends Homey.App
         {
             try
             {
-                if (error)
-                {
-                    if (error.stack)
-                    {
-                        data = {
-                            message: error.message,
-                            stack: error.stack,
-                        };
-                    }
-                    else if (error.message)
-                    {
-                        data = error.message;
-                    }
-                    else
-                    {
-                        data = error;
-                    }
-                }
-
                 let logData = this.homey.settings.get('infoLog');
                 if (!Array.isArray(logData))
                 {
@@ -1401,16 +1420,15 @@ class myApp extends Homey.App
 
     async stopSync()
     {
-        if (this.infoLogEnabled)
-        {
-            this.logInformation('Stop sync requested');
-        }
-
         if (this.commandsQueued > 0)
         {
             this.commandsQueued = 0;
             this.homey.clearTimeout(this.boostTimerId);
             this.boostTimerId = null;
+            if (this.infoLogEnabled)
+            {
+                this.logInformation('stopSync', 'Cleared commandsQueued');
+            }
         }
 
         this.nextCloudInterval = 0;
@@ -1419,19 +1437,28 @@ class myApp extends Homey.App
         {
             this.homey.clearTimeout(this.syncTimerId);
             this.syncTimerId = null;
-        }
-
-        if (this.infoLogEnabled)
-        {
-            this.logInformation('stopSync', 'Stopping Event Polling');
+            if (this.infoLogEnabled)
+            {
+                this.logInformation('stopSync', 'Stopped sync timer');
+            }
         }
 
         if (this.tahomaCloud)
         {
+            if (this.infoLogEnabled)
+            {
+                this.logInformation('stopSync', 'Stopping Local Event Polling');
+            }
+
             await this.tahomaCloud.eventsClearRegistered();
         }
         if (this.tahomaLocal)
         {
+            if (this.infoLogEnabled)
+            {
+                this.logInformation('stopSync', 'Stopping Cloud Event Polling');
+            }
+
             await this.tahomaLocal.eventsClearRegistered();
         }
     }
@@ -1454,7 +1481,7 @@ class myApp extends Homey.App
 
         if (this.infoLogEnabled)
         {
-            this.logInformation(`Restart sync in: ${CLOUD_INTERVAL} seconds`);
+            this.logInformation(`Restart local sync in: ${LOCAL_INTERVAL} seconds, cloud sync in: ${CLOUD_INTERVAL} seconds`);
         }
 
         this.nextCloudInterval = CLOUD_INTERVAL * 1000;
@@ -1526,12 +1553,12 @@ class myApp extends Homey.App
         {
             if (tahomaConnection.localLogin)
             {
-                this.logInformation('syncLoop',
+                this.logInformation('Local syncLoop',
                  `Logged in = ${tahomaConnection.authenticated}, Local = ${tahomaConnection.localLogin}, Old Sync State = ${this.syncing}, Next cloud sync in ${this.nextCloudInterval / 1000}s`);
             }
             else
             {
-                this.logInformation('syncLoop', `Logged in = ${tahomaConnection.authenticated}, Local = ${tahomaConnection.localLogin}, Old Sync State = ${this.syncing}`);
+                this.logInformation('Cloud syncLoop', `Logged in = ${tahomaConnection.authenticated}, Local = ${tahomaConnection.localLogin}, Old Sync State = ${this.syncing}`);
             }
         }
 
@@ -1633,12 +1660,12 @@ class myApp extends Homey.App
             {
                 if (this.infoLogEnabled)
                 {
-                    this.logInformation('Device status update', 'Refreshing');
+                    this.logInformation('Device status update', 'Checking events');
                 }
             }
             else if (this.infoLogEnabled)
             {
-                this.logInformation('Device status update', 'Renewing');
+                this.logInformation('Device status update', 'Initialising');
             }
 
             let drivers = this.homey.drivers.getDrivers();
@@ -1823,24 +1850,52 @@ class myApp extends Homey.App
         {
             if (this.tahomaLocal.supportedDevices.findIndex((element) => element.deviceURL === deviceURL) >= 0)
             {
-                const data = await this.tahomaLocal.executeDeviceAction(label, deviceURL, action, action2);
-                data.local = true;
-                return data;
+                try
+                {
+                    const data = await this.tahomaLocal.executeDeviceAction(label, deviceURL, action, action2);
+                    if (data.errorCode)
+                    {
+                        this.homey.app.logInformation(`${this.getName()}: onCapabilityHeatingModeState`, `Failed to send command: ${JSON.stringify(action)}, error = ${data.error} (${data.errorCode})`);
+                        throw (new Error(data.error));
+                    }
+
+                    data.local = true;
+                    return data;
+                }
+                catch (err)
+                {
+                    this.logInformation(`${label}: Local command failed (will try cloud)`, `command: ${this.varToString(action)}, error = ${this.varToString(err)})`);
+                }
             }
         }
 
         if (this.tahomaCloud.authenticated && !this.usingDebugData)
         {
-            const data = this.tahomaCloud.executeDeviceAction(label, deviceURL, action, action2);
-            data.local = false;
-            if (boostSync)
+            try
             {
-                this.boostSync();
+                const data = this.tahomaCloud.executeDeviceAction(label, deviceURL, action, action2);
+                if (data.errorCode)
+                {
+                    this.homey.app.logInformation(`${this.getName()}: onCapabilityHeatingModeState`, `Failed to send command: ${JSON.stringify(action)}, error = ${data.error} (${data.errorCode})`);
+                    throw (new Error(data.error));
+                }
+
+                data.local = false;
+                if (boostSync)
+                {
+                    this.boostSync();
+                }
+                return data;
             }
-            return data;
+            catch (err)
+            {
+                this.logInformation(`${label}: Cloud command failed`, `command: ${this.varToString(action)}, error = ${this.varToString(err)})`);
+                throw (err);
+            }
         }
 
-        return null;
+        this.logInformation(`${label}: Command failed, no valid connections`, `command: ${this.varToString(action)}`);
+        throw (new Error('Failed to send command, no valid connections'));
     }
 
     async getDeviceStates(deviceURL)
@@ -1850,12 +1905,26 @@ class myApp extends Homey.App
             // Check if the local connection supports the device
             if (this.tahomaLocal.supportedDevices.findIndex((element) => element.deviceURL === deviceURL) >= 0)
             {
-                return this.tahomaLocal.getDeviceStates(deviceURL);
+                const states = await this.tahomaLocal.getDeviceStates(deviceURL);
+                if (states)
+                {
+                    if (this.infoLogEnabled)
+                    {
+                        this.logInformation('Device local states', states);
+                    }
+
+                    return states;
+                }
             }
         }
         if (this.tahomaCloud.authenticated && !this.usingDebugData)
         {
-            return this.tahomaCloud.getDeviceStates(deviceURL);
+            const states = await this.tahomaCloud.getDeviceStates(deviceURL);
+            if (this.infoLogEnabled)
+            {
+                this.logInformation('Device cloud states', states);
+            }
+            return states;
         }
 
         return null;
@@ -1902,7 +1971,7 @@ class myApp extends Homey.App
 
     isLoggedIn()
     {
-        return (this.tahomaCloud.authenticated | (this.tahomaLocal && this.tahomaLocal.authenticated));
+        return (this.tahomaCloud.authenticated || (this.tahomaLocal && this.tahomaLocal.authenticated));
     }
 
 }
