@@ -13,7 +13,7 @@
   "description": {
     "en": "The heart of your Smart Home"
   },
-  "version": "4.0.59",
+  "version": "4.0.68",
   "compatibility": ">=5.0.0",
   "author": {
     "name": "Adrian Rockall"
@@ -1973,7 +1973,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=heater_variable"
+            "filter": "driver_id=heater_variable|protexial_alarm"
           }
         ]
       },
@@ -1989,7 +1989,7 @@
           {
             "name": "device",
             "type": "device",
-            "filter": "driver_id=heater_variable"
+            "filter": "driver_id=heater_variable|protexial_alarm"
           }
         ]
       },
@@ -2121,6 +2121,91 @@
               "en": "Seconds",
               "nl": "Seconden"
             }
+          }
+        ]
+      },
+      {
+        "id": "set_zone",
+        "title": {
+          "en": "Turn on the specified zones"
+        },
+        "titleFormatted": {
+          "en": "Turn on zone A [[zone_button_a]], zone B [[zone_button_b]], zone C [[zone_button_c]]"
+        },
+        "hint": {
+          "en": "You can only turn zones on, not off. If you want to turn off a zone, you have to turn off the whole alarm."
+        },
+        "args": [
+          {
+            "name": "device",
+            "type": "device",
+            "filter": "driver_id=protexial_alarm"
+          },
+          {
+            "name": "zone_button_a",
+            "title": {
+              "en": "Zone A"
+            },
+            "type": "dropdown",
+            "value": "0",
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "No Change"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "On"
+                }
+              }
+            ]
+          },
+          {
+            "name": "zone_button_b",
+            "title": {
+              "en": "Zone B"
+            },
+            "type": "dropdown",
+            "value": "0",
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "No Change"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "On"
+                }
+              }
+            ]
+          },
+          {
+            "name": "zone_button_c",
+            "title": {
+              "en": "Zone C"
+            },
+            "type": "dropdown",
+            "value": "0",
+            "values": [
+              {
+                "id": "0",
+                "label": {
+                  "en": "No Change"
+                }
+              },
+              {
+                "id": "1",
+                "label": {
+                  "en": "On"
+                }
+              }
+            ]
           }
         ]
       },
@@ -8240,10 +8325,10 @@
         "small": "/drivers/io_roller_shutter/assets/images/small.png"
       },
       "name": {
-        "en": "Roller shutter (io)",
-        "nl": "Rolluik (io)",
-        "fr": "Volet roulant (io)",
-        "de": "Rolladen (io)"
+        "en": "Roller shutter (io & ZigBee)",
+        "nl": "Rolluik (io & ZigBee)",
+        "fr": "Volet roulant (io & ZigBee)",
+        "de": "Rolladen (io & ZigBee)"
       },
       "class": "blinds",
       "capabilities": [
@@ -9772,7 +9857,8 @@
       "capabilities": [
         "windowcoverings_state",
         "windowcoverings_set",
-        "quick_open"
+        "quick_open",
+        "my_position"
       ],
       "settings": [
         {
@@ -10572,6 +10658,134 @@
         "heating_mode"
       ],
       "id": "pilot_wire_programmer"
+    },
+    {
+      "platforms": [
+        "local",
+        "cloud"
+      ],
+      "connectivity": [
+        "cloud"
+      ],
+      "pair": [
+        {
+          "id": "select_region"
+        },
+        {
+          "id": "login_credentials",
+          "template": "login_credentials",
+          "options": {
+            "logo": "logo.png",
+            "usernameLabel": {
+              "en": "E-mail address",
+              "fr": "Adresse e-mail",
+              "de": "E-Mail-Adresse",
+              "nl": "E-mailadres"
+            },
+            "usernamePlaceholder": {
+              "en": "john@doe.com",
+              "fr": "jean@dupont.com",
+              "de": "max.mustermann@mustermail.de",
+              "nl": "jansen@holland.nl"
+            },
+            "passwordLabel": {
+              "en": "Password",
+              "fr": "Mot de passe",
+              "de": "Passwort",
+              "nl": "Wachtwoord"
+            },
+            "passwordPlaceholder": {
+              "en": "Password",
+              "fr": "Mot de passe",
+              "de": "Passwort",
+              "nl": "Wachtwoord"
+            }
+          }
+        },
+        {
+          "id": "list_my_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_my_devices"
+          }
+        },
+        {
+          "id": "add_my_devices",
+          "template": "add_devices"
+        }
+      ],
+      "repair": [
+        {
+          "id": "login_credentials",
+          "template": "login_credentials",
+          "options": {
+            "logo": "logo.png",
+            "usernameLabel": {
+              "en": "E-mail address",
+              "fr": "Adresse e-mail",
+              "de": "E-Mail-Adresse",
+              "nl": "E-mailadres"
+            },
+            "usernamePlaceholder": {
+              "en": "john@doe.com",
+              "fr": "jean@dupont.com",
+              "de": "max.mustermann@mustermail.de",
+              "nl": "jansen@holland.nl"
+            },
+            "passwordLabel": {
+              "en": "Password",
+              "fr": "Mot de passe",
+              "de": "Passwort",
+              "nl": "Wachtwoord"
+            },
+            "passwordPlaceholder": {
+              "en": "Password",
+              "fr": "Mot de passe",
+              "de": "Passwort",
+              "nl": "Wachtwoord"
+            }
+          }
+        }
+      ],
+      "icon": "/drivers/protexial_alarm/assets/icon.svg",
+      "images": {
+        "large": "/drivers/protexial_alarm/assets/images/large.png",
+        "small": "/drivers/protexial_alarm/assets/images/small.png"
+      },
+      "name": {
+        "en": "Protexial IO Alarm"
+      },
+      "class": "homealarm",
+      "capabilities": [
+        "off_button",
+        "on_button",
+        "zone_button.a",
+        "zone_button.b",
+        "zone_button.c"
+      ],
+      "capabilitiesOptions": {
+        "on_button": {
+          "title": {
+            "en": "All Zones On"
+          }
+        },
+        "zone_button.a": {
+          "title": {
+            "en": "Zone A"
+          }
+        },
+        "zone_button.b": {
+          "title": {
+            "en": "Zone B"
+          }
+        },
+        "zone_button.c": {
+          "title": {
+            "en": "Zone C"
+          }
+        }
+      },
+      "id": "protexial_alarm"
     },
     {
       "platforms": [
@@ -14080,6 +14294,15 @@
         "nl": "Klep gesloten",
         "fr": "Vanne fermée",
         "de": "Ventil geschlossen"
+      }
+    },
+    "zone_button": {
+      "type": "boolean",
+      "getable": true,
+      "setable": true,
+      "uiComponent": "button",
+      "title": {
+        "en": "Zone"
       }
     }
   },
